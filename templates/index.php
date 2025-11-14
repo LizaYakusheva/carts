@@ -11,6 +11,12 @@
 <body>
 <h1>Список всех товаров</h1>
 <a href="/cart">Корзина</a>
+<a href=""></a>
+<?php if (!isset($_SESSION['user_id'])): ?>
+    <a href="/login">Войти</a>
+<?php else: ?>
+    <a href="/logout">Выйти</a>
+<?php endif; ?>
 <table>
     <tr class="product-container">
         <?php foreach ($products as $product):?>
@@ -18,17 +24,17 @@
                 <?=$product['name']?>
                 <a href="/product/<?=$product['id']?>">Перейти</a>
                 <?php if(array_key_exists($product['id'], $cartItems)):?>
-                <form action="/cart/minus" method="post">
+                <form action="/minus" method="post">
                     <input type="hidden" name="product_id" value="<?=$product['id']?>">
                     <input type="submit" value="-">
                 </form>
                 <span><?=$cartItems[$product['id']]?></span>
-                <form action="/cart/add" method="post">
+                <form action="/add" method="post">
                     <input type="hidden" name="product_id" value="<?=$product['id']?>">
                     <input type="submit" value="+">
                 </form>
                     <?php else:?>
-                    <form action="/cart/add" method="post">
+                    <form action="/add" method="post">
                         <input type="hidden" name="product_id" value="<?=$product['id']?>">
                         <input type="submit" value="Добавить в корзину">
                     </form>
