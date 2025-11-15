@@ -16,17 +16,17 @@ class CartController extends Controller
     }
     public function index(RequestInterface $request, ResponseInterface $response)
     {
-//        $cartItems = $this->cartServices->getCartItems();
-
-        $cartItems = ORM::forTable('cart_items')
-            ->select('cart_items.*')
-            ->select('products.name', 'product_name')
-            ->join('products', 'products.id = cart_items.product_id')
-            ->where('cart_id', $_COOKIE['cart_id'])
-            ->findArray();
+        $cartItems = $this->cartServices->getCartItems();
+        $cartId = $this->cartServices->getCartId();
+        $sum = ORM::forTable('cart_items')
+            ->join('products', ['cart_items.product_id', '=', 'products.id'])
+            ->select_expr('SUM(products.price * cart_items.count)', 'sum')
+            ->where('cart_items.cart_id', $cartId)
+            ->findOne();
 
         return $this->renderer->render($response, 'cart.php',[
             'cartItems' => $cartItems,
+            'sum' => $sum,
         ]);
     }
 

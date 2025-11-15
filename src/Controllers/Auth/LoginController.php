@@ -21,16 +21,16 @@ class LoginController extends Controller
         $user = \ORM::forTable('users')->where('login', $login)->findOne();
 
         if(!$user){
-            echo 'Такогоп пользователя не существует';
+            echo 'Такого пользователя не существует';
             exit();
         }
 
-        if ($user['password'] == $password){
+        if ($user['password'] == md5($password)){
             $_SESSION['user_id'] = $user['id'];
             return $response->withHeader('Location', '/')->withStatus(302);
         }
 
-        if(!$user['password'] !== $password){
+        if(!$user['password'] !== md5($password)){
             echo 'Пароль неверный';
             exit();
         }
@@ -39,6 +39,6 @@ class LoginController extends Controller
     public function logout(RequestInterface $request, ResponseInterface $response)
     {
         unset($_SESSION['user_id']);
-        return $response->withHeader('Location', '/')->withStatus(302);
+        return $response->withHeader('Location', $request->getHeaderLine('Referer'))->withStatus(302);
     }
 }

@@ -11,7 +11,10 @@
 <body>
 <a href="/">Назад</a>
 <h1>Корзина</h1>
-<a href="/order">Заказать</a>
+<p>Сумма заказа: <?=$sum['sum']?> руб.</p>
+<form action="/order" method="post">
+    <input type="submit" value="Заказать">
+</form>
 <table>
     <tr class="product-container">
         <?php foreach ($cartItems as $cartItem):?>

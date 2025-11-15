@@ -15,6 +15,6 @@
         <input type="text" name="password" id="password" placeholder="Пароль" required>
         <input type="submit" value="Войти">
     </form>
-    <a href="">Зарегестрироваться</a>
+    <a href="/register">Зарегестрироваться</a>
 </body>
 </html>

@@ -8,6 +8,14 @@
     <title>Document</title>
 </head>
 <body>
+<?php if (!isset($_SESSION['user_id'])): ?>
+    <a href="/login">Войти</a>
+<?php else: ?>
+    <a href="/logout">Выйти</a>
+<?php endif; ?>
+<hr>
+<a href="/">Назад</a>
 <h1><?=$product['name']?></h1>
+<p>Цена товара: <?=$product['price']?></p>
 </body>
 </html>

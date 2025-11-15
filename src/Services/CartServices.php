@@ -2,6 +2,8 @@
 
 namespace Src\Services;
 
+use ORM;
+
 class CartServices
 {
 
@@ -11,32 +13,34 @@ class CartServices
     {
         $cartId = $this->getCartId();
         $cartItem = \ORM::forTable('cart_items')->where(['product_id' => $productId, 'cart_id' => $cartId])->findOne();
-        if($cartItem === false){
+        if ($cartItem === false) {
             \ORM::forTable('cart_items')->create([
                 'cart_id' => $cartId,
                 'product_id' => $productId,
                 'count' => 1
             ])->save();
-        } else{
+        } else {
             $cartItem->set([
                 'count' => $cartItem['count'] + 1,
             ])->save();
         }
     }
-    public function minus(int $productId): void{
+
+    public function minus(int $productId): void
+    {
         $cartId = $this->getCartId();
         $cartItem = \ORM::forTable('cart_items')->where([
             'product_id' => $productId,
             'cart_id' => $cartId,
         ])->findOne();
-        if(!$cartItem){
+        if (!$cartItem) {
             return;
         }
-        if ($cartItem['count'] > 1){
+        if ($cartItem['count'] > 1) {
             $cartItem->set([
                 'count' => $cartItem['count'] - 1,
             ])->save();
-        }else{
+        } else {
             $cartItem->delete();
         }
     }
@@ -44,7 +48,10 @@ class CartServices
     public function getCartItems(): array
     {
         $cartId = $this->getCartId();
-        return \ORM::forTable('cart_items')
+        return ORM::forTable('cart_items')
+            ->select('cart_items.*')
+            ->select('products.name', 'product_name')
+            ->join('products', 'products.id = cart_items.product_id')
             ->where('cart_id', $cartId)
             ->findArray();
     }
@@ -54,19 +61,34 @@ class CartServices
         $cartItems = $this->getCartItems();
         $result = [];
 
-        foreach ($cartItems as $cartItem){
+        foreach ($cartItems as $cartItem) {
             $result[$cartItem['product_id']] = $cartItem['count'];
         }
         return $result;
     }
 
-    protected function getCartId(): int
+    public function getCartId(): int
     {
-        if(isset($_COOKIE[self::COOKIE_NAME])){
+        $userId = $_SESSION['user_id'] ?? null;
+
+        if (isset($userId)) {
+            $currentCart = \ORM::forTable("carts")->where([
+                'user_id' => $userId,
+                'status' => 'active',
+            ])->findOne();
+
+            if ($currentCart) {
+                return $currentCart['id'];
+            }
+        }
+
+        if (isset($_COOKIE[self::COOKIE_NAME])) {
             return $_COOKIE[self::COOKIE_NAME];
         }
 
-        $cart = \ORM::forTable('carts')->create();
+        $cart = \ORM::forTable('carts')->create([
+            'user_id' => $userId,
+        ]);
         $cart->save();
 
         setcookie(self::COOKIE_NAME, $cart->id, time() + 60 * 60 * 24 * 31, '/');

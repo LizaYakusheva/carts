@@ -9,19 +9,21 @@
     <link rel="stylesheet" href="styles/style.css">
 </head>
 <body>
-<h1>Список всех товаров</h1>
-<a href="/cart">Корзина</a>
-<a href=""></a>
 <?php if (!isset($_SESSION['user_id'])): ?>
     <a href="/login">Войти</a>
 <?php else: ?>
     <a href="/logout">Выйти</a>
 <?php endif; ?>
+<hr>
+<h1>Список всех товаров</h1>
+<a href="/cart">Корзина</a>
+<a href="">Мои заказы</a>
 <table>
     <tr class="product-container">
         <?php foreach ($products as $product):?>
             <td class="product-item">
-                <?=$product['name']?>
+                <h2><?=$product['name']?></h2>
+                <p>Цена:<?=$product['price']?> руб.</p>
                 <a href="/product/<?=$product['id']?>">Перейти</a>
                 <?php if(array_key_exists($product['id'], $cartItems)):?>
                 <form action="/minus" method="post">
