@@ -6,13 +6,14 @@
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
+    <link rel="stylesheet" href="/styles/style.css">
 </head>
 <body>
 <h1>Мои заказы</h1>
 <?php foreach ($orders as $order):?>
 <div class="orders">
     <p>Заказ <?=$order['id']?></p>
-    <table>
+    <table class="table">
         <thead>
         <tr>
             <td>Товар</td>
@@ -22,13 +23,14 @@
         </tr>
         </thead>
         <tbody>
-        <?php foreach ($ordersItemsGrouped[$order['cart_id']] as $orderItem):?>
+        <?php foreach ($orderItemsGrouped[$order['cart_id']] as $orderItem):?>
         <tr>
             <td><?=$orderItem['product_name']?></td>
             <td><?=$orderItem['price']?></td>
             <td><?=$orderItem['count']?></td>
             <td><?=$orderItem['count'] * $orderItem['price']?></td>
         </tr>
+        <?php endforeach;?>
         </tbody>
     </table>
 </div>

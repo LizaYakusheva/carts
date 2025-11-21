@@ -45,7 +45,7 @@ $app->get('/product/{id}', [ProductController::class, 'show']);
 
 $app->group('/', function () use ($app){
     $app->post('/order', [OrderController::class, 'index']);
-    $app->get('/order', [OrderController::class, 'indexOrder']);
+    $app->get('/order', [OrderController::class, 'store']);
 
     $app->get('/logout', [LoginController::class, 'logout']);
 })->add(new AuthMiddleware($container->get(ResponseFactory::class)));

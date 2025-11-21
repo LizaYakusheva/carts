@@ -43,7 +43,7 @@ class OrderController extends Controller
         return $response->withHeader('Location', '/')->withStatus(302);
     }
 
-    public function indexOrder(RequestInterface $request, ResponseInterface $response)
+    public function store(RequestInterface $request, ResponseInterface $response)
     {
         $orders = \ORM::forTable('orders')
             ->where('user_id', $_SESSION['user_id'])
@@ -51,13 +51,20 @@ class OrderController extends Controller
             ->findMany();
         $cartIds = array_column($orders, 'cart_id');
         $orderItems = \ORM::forTable('cart_items')
+            ->select('cart_items.*')
+            ->select('products.name', 'product_name')
+            ->join('products', ['products.id', '=' , 'cart_items.product_id'])
             ->whereIn('cart_id', $cartIds)
             ->findArray();
-        $orderItetemsGroup = [];
+        $orderItemsGrouped = [];
 
         foreach ($orderItems as $orderItem){
-            $order
+            $orderItemsGrouped[$orderItem['cart_id']] [] = $orderItem;
         }
 
+        return $this->renderer->render($response, 'orders.php', [
+           'orders' => $orders,
+           'orderItemsGrouped' => $orderItemsGrouped,
+        ]);
     }
 }

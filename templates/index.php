@@ -6,7 +6,7 @@
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
-    <link rel="stylesheet" href="styles/style.css">
+    <link rel="stylesheet" href="../styles/style.css">
 </head>
 <body>
 <?php if (!isset($_SESSION['user_id'])): ?>
@@ -17,7 +17,7 @@
 <hr>
 <h1>Список всех товаров</h1>
 <a href="/cart">Корзина</a>
-<a href="">Мои заказы</a>
+<a href="/order">Мои заказы</a>
 <table>
     <tr class="product-container">
         <?php foreach ($products as $product):?>

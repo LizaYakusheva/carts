@@ -14,11 +14,13 @@ class CartServices
         $cartId = $this->getCartId();
         $cartItem = \ORM::forTable('cart_items')->where(['product_id' => $productId, 'cart_id' => $cartId])->findOne();
         if ($cartItem === false) {
+
             \ORM::forTable('cart_items')->create([
                 'cart_id' => $cartId,
                 'product_id' => $productId,
                 'count' => 1
             ])->save();
+
         } else {
             $cartItem->set([
                 'count' => $cartItem['count'] + 1,
