@@ -2,6 +2,7 @@
 
 namespace Src\Controllers\Auth;
 
+use ORM;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Slim\Views\PhpRenderer;
@@ -22,19 +23,19 @@ class OrderController extends Controller
         $cartItems = $this->cartServices->getCartItems();
 
         foreach ($cartItems as $cartItem){
-            $product = \ORM::forTable('products')->findOne($cartItem['product_id']);
+            $product = ORM::forTable('products')->findOne($cartItem['product_id']);
 
-            \ORM::forTable('cart_items')->findOne($cartItem['id'])->set([
+            ORM::forTable('cart_items')->findOne($cartItem['id'])->set([
                 'price' => $product['price']
             ])->save();
         }
 
-        \ORM::forTable('orders')->create([
+        ORM::forTable('orders')->create([
             'user_id' => $userId,
             'cart_id' => $cartId,
         ])->save();
 
-        \ORM::forTable('carts')->findOne($cartId)->set([
+        ORM::forTable('carts')->findOne($cartId)->set([
             'status' => 'closed'
         ])->save();
 
@@ -45,12 +46,12 @@ class OrderController extends Controller
 
     public function store(RequestInterface $request, ResponseInterface $response)
     {
-        $orders = \ORM::forTable('orders')
+        $orders = ORM::forTable('orders')
             ->where('user_id', $_SESSION['user_id'])
             ->orderByDesc('id')
             ->findMany();
         $cartIds = array_column($orders, 'cart_id');
-        $orderItems = \ORM::forTable('cart_items')
+        $orderItems = ORM::forTable('cart_items')
             ->select('cart_items.*')
             ->select('products.name', 'product_name')
             ->join('products', ['products.id', '=' , 'cart_items.product_id'])
@@ -67,4 +68,5 @@ class OrderController extends Controller
            'orderItemsGrouped' => $orderItemsGrouped,
         ]);
     }
+
 }
