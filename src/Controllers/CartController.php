@@ -7,6 +7,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Slim\Views\PhpRenderer;
 use Src\Services\CartServices;
+use YooKassa\Client;
 
 class CartController extends Controller
 {
@@ -65,4 +66,5 @@ class CartController extends Controller
 
         return $response->withHeader('Location', '/cart')->withStatus(302);
     }
+
 }

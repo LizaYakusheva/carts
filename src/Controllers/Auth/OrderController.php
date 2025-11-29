@@ -8,16 +8,26 @@ use Psr\Http\Message\ResponseInterface;
 use Slim\Views\PhpRenderer;
 use Src\Controllers\Controller;
 use Src\Services\CartServices;
+use YooKassa\Client;
 
 class OrderController extends Controller
 {
-    public function __construct(PhpRenderer $renderer, protected CartServices $cartServices)
+    public function __construct(PhpRenderer $renderer, protected CartServices $cartServices, protected Client $client)
     {
         parent::__construct($renderer);
     }
 
-    public function index(RequestInterface $request, ResponseInterface $response)
+    public function success(RequestInterface $request, ResponseInterface $response, array $args)
     {
+//        $order = ORM::forTable('orders')->findOne($args['id'])->set(['status' => '']);
+
+        return $this->renderer->render($response, 'success.php');
+    }
+
+    public function store(RequestInterface $request, ResponseInterface $response)
+    {
+        $orderSum = 0;
+
         $userId = $_SESSION['user_id'];
         $cartId = $this->cartServices->getCartId();
         $cartItems = $this->cartServices->getCartItems();
@@ -25,15 +35,54 @@ class OrderController extends Controller
         foreach ($cartItems as $cartItem){
             $product = ORM::forTable('products')->findOne($cartItem['product_id']);
 
-            ORM::forTable('cart_items')->findOne($cartItem['id'])->set([
+            $currentCartItem = ORM::forTable('cart_items')->findOne($cartItem['id'])->set([
                 'price' => $product['price']
-            ])->save();
+            ]);
+            $currentCartItem->save();
+
+            $orderSum += $currentCartItem['price'] * $cartItem['count'];
         }
 
-        ORM::forTable('orders')->create([
+        $order = ORM::forTable('orders')->create([
             'user_id' => $userId,
             'cart_id' => $cartId,
-        ])->save();
+        ]);
+
+        $order->save();
+
+        $paymentResponse = $this->client->createPayment(
+            [
+                'amount' => [
+                    'value' => $orderSum,
+                    'currency' => 'RUB',
+                ],
+                'confirmation' => [
+                    'type' => 'redirect',
+                    'locale' => 'ru_RU',
+                    'return_url' => 'http://localhost/payment/' . $order->id,
+                ],
+                'capture' => true,
+                'description' => 'Заказ ' . $order->id,
+                'metadata' => [
+                    'orderNumber' => $order->id
+                ],
+            ]
+        );
+
+        $paymentId = $paymentResponse->getId();
+        $paymentLink = $paymentResponse->confirmation->getConfirmationUrl();
+        $status = $paymentResponse->getStatus();
+
+//        $a = $client->getPaymentInfo($paymentId);
+//        $a->getStatus();
+
+        ORM::forTable('orders')->findOne($order->id)
+            ->set([
+                'order_id' => $paymentId,
+                'payment_link' => $paymentLink,
+                'status' => $status,
+            ])
+        ->save();
 
         ORM::forTable('carts')->findOne($cartId)->set([
             'status' => 'closed'
@@ -41,10 +90,10 @@ class OrderController extends Controller
 
         setcookie('cart_id', $cartId, time() - 60 * 60 * 24 * 31, '/');
 
-        return $response->withHeader('Location', '/')->withStatus(302);
+        return $response->withHeader('Location', $paymentLink)->withStatus(302);
     }
 
-    public function store(RequestInterface $request, ResponseInterface $response)
+    public function index(RequestInterface $request, ResponseInterface $response)
     {
         $orders = ORM::forTable('orders')
             ->where('user_id', $_SESSION['user_id'])
@@ -60,7 +109,7 @@ class OrderController extends Controller
         $orderItemsGrouped = [];
 
         foreach ($orderItems as $orderItem){
-            $orderItemsGrouped[$orderItem['cart_id']] [] = $orderItem;
+            $orderItemsGrouped[$orderItem['cart_id']][] = $orderItem;
         }
 
         return $this->renderer->render($response, 'orders.php', [

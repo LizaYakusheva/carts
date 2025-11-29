@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/styles/style.css">
 </head>
 <body>
+<a href="/">Назад</a>
 <h1>Мои заказы</h1>
 <?php foreach ($orders as $order):?>
 <div class="orders">

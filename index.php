@@ -7,12 +7,11 @@ use Slim\Views\PhpRenderer;
 use Src\Controllers\Auth\LoginController;
 use Src\Controllers\Auth\OrderController;
 use Src\Controllers\Auth\RegisterController;
-use Src\Controllers\Auth\UserController;
 use Src\Controllers\CartController;
-use Src\Controllers\CartServices;
 use Src\Controllers\HomeController;
 use Src\Controllers\ProductController;
 use Src\Middleware\AuthMiddleware;
+use YooKassa\Client;
 
 require __DIR__ . '/vendor/autoload.php';
 
@@ -21,6 +20,12 @@ session_start();
 $container = new Container();
 AppFactory::setContainer($container);
 $app = AppFactory::create();
+
+$container->set(Client::class, function (){
+    $client = new Client();
+    $client->setAuth('1218090', 'test_oAE61eVuKNisyXhiwzmjb8xVemFU8gQ5_9WAFDxcR_o');
+    return $client;
+});
 
 $container->set(PhpRenderer::class, function () {
     return new PhpRenderer(__DIR__ . '/templates');
@@ -44,8 +49,10 @@ $app->post('/cart/minus', [CartController::class, 'minusCart']);
 $app->get('/product/{id}', [ProductController::class, 'show']);
 
 $app->group('/', function () use ($app){
-    $app->post('/order', [OrderController::class, 'index']);
-    $app->get('/order', [OrderController::class, 'store']);
+    $app->get('/payment/{id}', [OrderController::class, 'success']);
+
+    $app->post('/order', [OrderController::class, 'store']);
+    $app->get('/order', [OrderController::class, 'index']);
 
     $app->get('/logout', [LoginController::class, 'logout']);
 })->add(new AuthMiddleware($container->get(ResponseFactory::class)));
